@@ -1,4 +1,4 @@
-name: 'slopless'
+name: 'Slopless Prose Lint'
 description: 'Catch AI and human prose slop in Markdown (deterministic textlint CLI).'
 author: 'seochecks.ai'
 branding:
