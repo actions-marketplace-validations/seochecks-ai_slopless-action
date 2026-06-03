@@ -1,0 +1,20 @@
+name: tag
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  move-major:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: move the major tag (v1) to this release
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"     # e.g. v1.2.3
+          major="${tag%%.*}"           # v1
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "${major}" "${tag}"
+          git push -f origin "${major}"

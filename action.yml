@@ -1,0 +1,52 @@
+name: 'slopless'
+description: 'Catch AI and human prose slop in Markdown (deterministic textlint CLI).'
+author: 'seochecks.ai'
+branding:
+  icon: 'edit-3'
+  color: 'purple'
+inputs:
+  files:
+    description: 'Path or glob of Markdown to lint. Scope it (e.g. docs/**/*.md) to avoid node_modules.'
+    required: false
+    default: '**/*.md'
+  version:
+    description: 'slopless npm version to run (e.g. 0.2.21, or latest).'
+    required: false
+    default: 'latest'
+  node-version:
+    description: "Node version to set up. Empty string uses the runner's default node."
+    required: false
+    default: '22'
+  output-file:
+    description: 'If set, write the JSON findings to this path.'
+    required: false
+    default: ''
+outputs:
+  findings:
+    description: 'JSON findings emitted by slopless.'
+    value: ${{ steps.run.outputs.findings }}
+runs:
+  using: 'composite'
+  steps:
+    - if: ${{ inputs.node-version != '' }}
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: ${{ inputs.node-version }}
+    - id: run
+      shell: bash
+      env:
+        SLOPLESS_FILES: ${{ inputs.files }}
+        SLOPLESS_VERSION: ${{ inputs.version }}
+        SLOPLESS_OUTPUT: ${{ inputs.output-file }}
+      run: |
+        set +e
+        out=$(npx --yes "slopless@${SLOPLESS_VERSION}" "${SLOPLESS_FILES}")
+        code=$?
+        {
+          echo "findings<<SLOPLESS_EOF"
+          echo "${out}"
+          echo "SLOPLESS_EOF"
+        } >> "${GITHUB_OUTPUT}"
+        if [ -n "${SLOPLESS_OUTPUT}" ]; then printf '%s' "${out}" > "${SLOPLESS_OUTPUT}"; fi
+        echo "${out}"
+        exit "${code}"

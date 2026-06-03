@@ -1,0 +1,31 @@
+name: test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  flags-slop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: printf 'At the end of the day, we do not sell software. We sell outcomes.\n' > slop.md
+      - id: lint
+        continue-on-error: true
+        uses: ./
+        with:
+          files: slop.md
+      - name: assert the slop file failed the action
+        run: |
+          if [ "${{ steps.lint.outcome }}" != "failure" ]; then
+            echo "expected slopless to flag slop.md and fail the step"
+            exit 1
+          fi
+  passes-clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - run: printf 'The migration finished ahead of schedule and cut query time in half.\n' > clean.md
+      - uses: ./
+        with:
+          files: clean.md
